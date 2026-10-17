@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://guincho24honline.com.br/sitemap.xml
