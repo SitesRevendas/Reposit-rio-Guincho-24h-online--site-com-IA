@@ -9,7 +9,7 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-const PORT = Number(process.env.PORT || 3000);
+const PORT = Number(process.env.LEAD_PORT || 3000); // não usar PORT: o Easypanel define PORT=80 (o do Nginx)
 const HOST = process.env.LEAD_STATIC ? '0.0.0.0' : '127.0.0.1';
 const KEY = process.env.RESEND_API_KEY || '';
 const TO = (process.env.LEAD_TO || '').split(',').map(s => s.trim()).filter(Boolean);
