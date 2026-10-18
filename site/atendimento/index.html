@@ -202,7 +202,10 @@
   <h2 id="f-title">Peça seu orçamento de guincho</h2>
   <p>Leva menos de um minuto. O WhatsApp abre com o pedido pronto para o guincheiro da sua região.</p>
   <div class="field"><label for="f-servico">O que você precisa?</label><select id="f-servico" name="servico" required aria-describedby="f-e1" data-wa="Atendimento"><option value="">Selecione o atendimento</option><option>Guincho para carro</option><option>Guincho para moto</option><option>Guincho para caminhonete ou SUV</option><option>Guincho para utilitário ou van</option><option>Guincho após acidente</option><option>Guincho na rodovia</option><option>Assistência no local (bateria, pneu ou pane seca)</option><option>Outro atendimento</option></select><span class="field-error" id="f-e1" hidden>Escolha o atendimento.</span></div>
-  <div class="field"><label for="f-nome">Seu nome</label><input id="f-nome" name="nome" type="text" autocomplete="name" required aria-describedby="f-e2" data-wa="Nome"><span class="field-error" id="f-e2" hidden>Escreva o seu nome.</span></div>
+  <div class="field-row">
+    <div class="field"><label for="f-nome">Seu nome</label><input id="f-nome" name="nome" type="text" autocomplete="name" required aria-describedby="f-e2" data-wa="Nome"><span class="field-error" id="f-e2" hidden>Escreva o seu nome.</span></div>
+    <div class="field"><label for="f-tel">Seu WhatsApp com DDD</label><input id="f-tel" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="(61) 99999-9999" required aria-describedby="f-e6"><span class="field-error" id="f-e6" hidden>Escreva um WhatsApp com DDD.</span></div>
+  </div>
   <div class="field-row">
     <div class="field"><label for="f-local">Onde está o veículo</label><input id="f-local" name="local" type="text" placeholder="Ex.: QNM 12, Ceilândia Norte" required aria-describedby="f-e3" data-wa="Onde está o veículo"><span class="field-error" id="f-e3" hidden>Escreva onde o veículo está.</span></div>
     <div class="field"><label for="f-destino">Para onde levar</label><input id="f-destino" name="destino" type="text" placeholder="Oficina, casa ou concessionária" required aria-describedby="f-e4" data-wa="Destino"><span class="field-error" id="f-e4" hidden>Escreva para onde levar o veículo.</span></div>
@@ -315,6 +318,6 @@
   <ul class="lp-nudge-opts"><li><button class="lp-nudge-opt" type="button" data-situacao="Veículo parado agora"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-alert"/></svg><span>Veículo parado agora</span></button></li><li><button class="lp-nudge-opt" type="button" data-situacao="Quero agendar"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-calendar"/></svg><span>Quero agendar</span></button></li><li><button class="lp-nudge-opt" type="button" data-situacao="Só quero saber o preço"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-receipt"/></svg><span>Só quero saber o preço</span></button></li></ul>
 </aside>
 <button class="lp-tab" id="lp-tab" type="button" hidden><svg class="icon icon--sm" aria-hidden="true"><use href="#i-file"/></svg><span>Preencher o pedido de orçamento</span></button>
-<script src="/assets/site.js?v=e3f80b70" defer></script>
+<script src="/assets/site.js?v=d3af0beb" defer></script>
 </body>
 </html>

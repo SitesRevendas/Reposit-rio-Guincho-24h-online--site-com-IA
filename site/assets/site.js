@@ -1,12 +1,29 @@
 /* Guincho 24h Online: formulários que montam a mensagem do WhatsApp. Todo texto exibido já está no HTML. */
 (function () {
   'use strict';
+  var inicio = Date.now();
+  /* Cópia do pedido para a central (e-mail e planilha), mesmo que a pessoa não envie a mensagem no WhatsApp */
+  function copia(f) {
+    var d = { gatilho: 'formulario', pagina: location.pathname, titulo: document.title, servico: document.title.split(' | ')[0],
+              tempo: Math.round((Date.now() - inicio) / 1000), lgpd: 'on', site: '' };
+    var cod = /\[(T\d\d-[A-Z0-9]+)\]/.exec(f.dataset.intro || '');
+    if (cod) d.codigo = cod[1];
+    d.tipo = /parceiro/.test(f.dataset.intro || '') ? 'parceiro' : 'cliente';
+    var eq = [];
+    f.querySelectorAll('input[name], select[name], textarea[name]').forEach(function (el) {
+      if (el.type === 'checkbox') { if (el.name === 'equipamento[]' && el.checked) eq.push(el.value); return; }
+      var k = el.name === 'servico' ? 'atendimento' : el.name;
+      if (el.value.trim()) d[k] = el.value.trim();
+    });
+    if (eq.length) d.equipamento = eq.join(', ');
+    try { fetch('/api/lead', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) }); } catch (e) { /* sem rede: o WhatsApp segue abrindo */ }
+  }
   document.querySelectorAll('form.wa-form').forEach(function (f) {
     f.addEventListener('submit', function (e) {
       e.preventDefault();
       var first = null;
       f.querySelectorAll('[required]').forEach(function (el) {
-        var ok = el.type === 'checkbox' ? el.checked : el.value.trim().length > 1;
+        var ok = el.type === 'checkbox' ? el.checked : el.type === 'tel' ? el.value.replace(/\D/g, '').length >= 10 : el.value.trim().length > 1;
         var err = document.getElementById(el.getAttribute('aria-describedby'));
         if (err) err.hidden = ok;
         if (ok) { el.removeAttribute('aria-invalid'); } else { el.setAttribute('aria-invalid', 'true'); if (!first) first = el; }
@@ -17,6 +34,7 @@
       var groups = {};
       f.querySelectorAll('[data-wa-group]:checked').forEach(function (el) { (groups[el.dataset.waGroup] = groups[el.dataset.waGroup] || []).push(el.value); });
       Object.keys(groups).forEach(function (g) { lines.push(g + ': ' + groups[g].join(', ')); });
+      copia(f);
       window.open('https://wa.me/5561993801454?text=' + encodeURIComponent(lines.join('\n')), '_blank', 'noopener');
       var st = f.querySelector('.form-status');
       if (st) st.hidden = false;

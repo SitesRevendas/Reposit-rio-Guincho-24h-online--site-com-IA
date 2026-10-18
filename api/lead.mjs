@@ -1,12 +1,16 @@
-// Guincho 24h Online: recebe os pedidos dos pop-ups (POST /api/lead) e manda por e-mail pelo Resend.
+// Guincho 24h Online: recebe os pedidos dos pop-ups e dos formulários (POST /api/lead), grava cada um em
+// /data/leads.csv (volume do Easypanel) e manda por e-mail pelo Resend. A planilha sai em GET /api/leads.csv?chave=...
 // Roda no mesmo contêiner do Nginx (127.0.0.1:3000), sem dependências (Node 18+).
 // Variáveis no Easypanel (app web > Environment):
 //   RESEND_API_KEY  chave do Resend (obrigatória; nunca colocar no código)
 //   LEAD_TO         e-mail que recebe os leads (vários separados por vírgula)
 //   LEAD_FROM       remetente; sem domínio verificado no Resend use "Guincho 24h Online <onboarding@resend.dev>"
+//   LEAD_ADMIN      chave para baixar a planilha de leads (/api/leads.csv?chave=...)
+//   LEAD_DATA       pasta onde fica o leads.csv (padrão /data; montar um volume nela no Easypanel)
 // Teste local sem enviar e-mail: LEAD_DRY=1 LEAD_STATIC=../site node lead.mjs  (abre o site em http://localhost:3000)
 import http from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { readFile, appendFile, mkdir, stat } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 
 const PORT = Number(process.env.LEAD_PORT || 3000); // não usar PORT: o Easypanel define PORT=80 (o do Nginx)
@@ -15,15 +19,19 @@ const KEY = process.env.RESEND_API_KEY || '';
 const TO = (process.env.LEAD_TO || '').split(',').map(s => s.trim()).filter(Boolean);
 const FROM = process.env.LEAD_FROM || 'Guincho 24h Online <onboarding@resend.dev>';
 const DRY = process.env.LEAD_DRY === '1';
+const ADMIN = process.env.LEAD_ADMIN || '';
+const DATA = process.env.LEAD_DATA || '/data';
+const CSV = path.join(DATA, 'leads.csv');
 
 const CAMPOS = [
   ['situacao', 'Situação'], ['interesse', 'Interesse'], ['veiculo', 'Veículo'], ['equipamento', 'Equipamento'],
-  ['local', 'Onde está o veículo'], ['destino', 'Destino'], ['cidade', 'Cidade da base'],
+  ['atendimento', 'Atendimento'], ['local', 'Onde está o veículo'], ['destino', 'Destino'], ['cidade', 'Cidade'],
+  ['regiao', 'Região de interesse'], ['assunto', 'Assunto'], ['mensagem', 'Mensagem'],
   ['nome', 'Nome'], ['whatsapp', 'WhatsApp'],
-  ['servico', 'Página de'], ['codigo', 'Código da localidade'], ['gatilho', 'Pop-up'], ['pagina', 'Endereço da página'],
+  ['servico', 'Página de'], ['codigo', 'Código da localidade'], ['gatilho', 'Origem do lead'], ['pagina', 'Endereço da página'],
   ['titulo', 'Título da página'], ['tempo', 'Segundos na página até enviar'],
 ];
-const GATILHOS = { saida: 'Saída (tentou sair da página)', parada: 'Parada (ficou sem interagir)', rolagem: 'Rolagem (aviso no canto)', botao: 'Botão fixo do pedido' };
+const GATILHOS = { saida: 'Saída (tentou sair da página)', parada: 'Parada (ficou sem interagir)', rolagem: 'Rolagem (aviso no canto)', botao: 'Botão fixo do pedido', formulario: 'Formulário da página (também abriu o WhatsApp)' };
 
 // Limite simples por IP: 5 pedidos a cada 10 minutos
 const visitas = new Map();
@@ -35,14 +43,26 @@ function limitado(ip) {
 }
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const limpa = v => String(v ?? '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 300);
+const limpa = v => String(v ?? '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 600);
+
+// Planilha: uma linha por lead, gravada mesmo se o e-mail falhar
+const COLUNAS = ['id', 'data', 'hora', 'codigo', 'tipo', 'gatilho', ...CAMPOS.map(([k]) => k).filter(k => !['codigo', 'gatilho'].includes(k)), 'email'];
+const celula = v => { const t = String(v ?? '').replace(/"/g, '""'); return /^[=+\-@]/.test(t) ? `"'${t}"` : `"${t}"`; };
+async function gravar(d) {
+  try {
+    await mkdir(DATA, { recursive: true });
+    const novo = await stat(CSV).then(() => false, () => true);
+    const linha = COLUNAS.map(c => celula(d[c])).join(';') + '\r\n';
+    await appendFile(CSV, (novo ? '﻿' + COLUNAS.join(';') + '\r\n' : '') + linha, 'utf8');
+  } catch (e) { console.error('[lead] não gravou na planilha:', e.message); }
+}
 
 function montar(d) {
   const parceiro = d.tipo === 'parceiro';
   const fone = d.whatsapp.replace(/\D/g, '');
   const wa = `https://wa.me/55${fone}`;
-  const resumo = parceiro ? (d.interesse || 'Cadastro de parceiro') : (d.situacao || 'Pedido');
-  const onde = parceiro ? d.cidade : d.local;
+  const resumo = parceiro ? (d.interesse || 'Cadastro de parceiro') : (d.situacao || d.atendimento || d.assunto || 'Pedido');
+  const onde = d.local || d.cidade;
   const assunto = `${d.codigo ? `[${d.codigo}] ` : ''}${parceiro ? 'Novo guincheiro' : 'Novo lead'}: ${resumo}${d.veiculo ? ` · ${d.veiculo}` : ''}${onde ? ` · ${onde}` : ''}`.slice(0, 180);
   const hora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
   const linhas = CAMPOS.filter(([k]) => d[k]).map(([k, r]) => {
@@ -92,7 +112,15 @@ async function estatico(req, res) {
 
 http.createServer((req, res) => {
   const url = req.url.split('?')[0];
-  if (url === '/api/saude') return responder(res, 200, { ok: true, configurado: Boolean(KEY && TO.length) || DRY });
+  if (url === '/api/saude') return stat(CSV).then(() => true, () => false).then(planilha => responder(res, 200, { ok: true, configurado: Boolean(KEY && TO.length) || DRY, planilha }));
+  if (url === '/api/leads.csv') {
+    const chave = new URL(req.url, 'http://x').searchParams.get('chave') || '';
+    if (!ADMIN || chave !== ADMIN) return responder(res, 403, { ok: false });
+    return readFile(CSV).then(b => {
+      res.writeHead(200, { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="leads-site.csv"', 'Cache-Control': 'no-store' });
+      res.end(b);
+    }, () => responder(res, 404, { ok: false, erro: 'Nenhum lead gravado ainda' }));
+  }
   if (url !== '/api/lead') return process.env.LEAD_STATIC ? estatico(req, res) : responder(res, 404, { ok: false });
   if (req.method !== 'POST') return responder(res, 405, { ok: false });
   const ip = String(req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.socket.remoteAddress).split(',')[0].trim();
@@ -106,9 +134,19 @@ http.createServer((req, res) => {
     if (limitado(ip)) return responder(res, 429, { ok: false });
     const dados = { tipo: d.tipo === 'parceiro' ? 'parceiro' : 'cliente' };
     for (const [k] of CAMPOS) dados[k] = limpa(d[k]);
-    const fone = dados.whatsapp.replace(/\D/g, '');
+    let fone = dados.whatsapp.replace(/\D/g, '');
+    if (fone.length > 11 && fone.startsWith('55')) fone = fone.slice(2);
+    if (fone.length === 11) dados.whatsapp = `(${fone.slice(0, 2)}) ${fone.slice(2, 7)}-${fone.slice(7)}`;
+    if (fone.length === 10) dados.whatsapp = `(${fone.slice(0, 2)}) ${fone.slice(2, 6)}-${fone.slice(6)}`;
+    dados.gatilho = dados.gatilho in GATILHOS ? dados.gatilho : 'saida';
     if (dados.nome.length < 2 || fone.length < 10 || fone.length > 11 || d.lgpd !== 'on') return responder(res, 422, { ok: false });
-    try { const ok = await enviar(dados); responder(res, ok ? 200 : 502, { ok }); }
-    catch (e) { console.error('[lead]', e.message); responder(res, 502, { ok: false }); }
+    const agora = new Date();
+    Object.assign(dados, { id: randomUUID().slice(0, 8), data: agora.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+      hora: agora.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) });
+    let ok = false;
+    try { ok = await enviar(dados); } catch (e) { console.error('[lead]', e.message); }
+    dados.email = ok ? 'enviado' : 'falhou';
+    await gravar(dados);
+    responder(res, ok ? 200 : 502, { ok });
   });
 }).listen(PORT, HOST, () => console.log(`[lead] ouvindo em ${HOST}:${PORT}${DRY ? ' (teste, sem envio)' : ''}`));

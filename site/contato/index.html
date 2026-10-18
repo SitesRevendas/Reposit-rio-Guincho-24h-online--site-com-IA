@@ -190,9 +190,12 @@
     <form class="quote-form wa-form" action="https://wa.me/5561993801454" method="get" target="_blank" aria-labelledby="c-title" data-intro="Olá! Mensagem enviada pelo site." novalidate>
   <h2 id="c-title">Envie uma mensagem</h2>
   <p>A mensagem abre no WhatsApp da central, pronta para enviar.</p>
-  <div class="field"><label for="c-assunto">Assunto</label><select id="c-assunto" name="assunto" required aria-describedby="c-e1" data-wa="Assunto"><option value="">Selecione o assunto</option><option>Pedido de guincho</option><option>Dúvida sobre um atendimento</option><option>Quero ser guincheiro parceiro</option><option>Parcerias e imprensa</option><option>Outro assunto</option></select><span class="field-error" id="c-e1" hidden>Escolha o assunto.</span></div>
   <div class="field-row">
     <div class="field"><label for="c-nome">Seu nome</label><input id="c-nome" name="nome" type="text" autocomplete="name" required aria-describedby="c-e2" data-wa="Nome"><span class="field-error" id="c-e2" hidden>Escreva o seu nome.</span></div>
+    <div class="field"><label for="c-tel">Seu WhatsApp com DDD</label><input id="c-tel" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="(61) 99999-9999" required aria-describedby="c-e6"><span class="field-error" id="c-e6" hidden>Escreva um WhatsApp com DDD.</span></div>
+  </div>
+  <div class="field-row">
+    <div class="field"><label for="c-assunto">Assunto</label><select id="c-assunto" name="assunto" required aria-describedby="c-e1" data-wa="Assunto"><option value="">Selecione o assunto</option><option>Pedido de guincho</option><option>Dúvida sobre um atendimento</option><option>Quero ser guincheiro parceiro</option><option>Parcerias e imprensa</option><option>Outro assunto</option></select><span class="field-error" id="c-e1" hidden>Escolha o assunto.</span></div>
     <div class="field"><label for="c-cidade">Cidade</label><input id="c-cidade" name="cidade" type="text" autocomplete="address-level2" required aria-describedby="c-e3" data-wa="Cidade"><span class="field-error" id="c-e3" hidden>Escreva a sua cidade.</span></div>
   </div>
   <div class="field"><label for="c-msg">Mensagem</label><textarea id="c-msg" name="mensagem" rows="4" required aria-describedby="c-e4" data-wa="Mensagem"></textarea><span class="field-error" id="c-e4" hidden>Escreva a sua mensagem.</span></div>
@@ -302,6 +305,6 @@
   <ul class="lp-nudge-opts"><li><button class="lp-nudge-opt" type="button" data-situacao="Veículo parado agora"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-alert"/></svg><span>Veículo parado agora</span></button></li><li><button class="lp-nudge-opt" type="button" data-situacao="Quero agendar"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-calendar"/></svg><span>Quero agendar</span></button></li><li><button class="lp-nudge-opt" type="button" data-situacao="Só quero saber o preço"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-receipt"/></svg><span>Só quero saber o preço</span></button></li></ul>
 </aside>
 <button class="lp-tab" id="lp-tab" type="button" hidden><svg class="icon icon--sm" aria-hidden="true"><use href="#i-file"/></svg><span>Preencher o pedido de orçamento</span></button>
-<script src="/assets/site.js?v=e3f80b70" defer></script>
+<script src="/assets/site.js?v=d3af0beb" defer></script>
 </body>
 </html>
