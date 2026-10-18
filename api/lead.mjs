@@ -1,16 +1,16 @@
 // Guincho 24h Online: recebe os pedidos dos pop-ups e dos formulários (POST /api/lead), grava cada um em
-// /data/leads.csv (volume do Easypanel) e manda por e-mail pelo Resend. A planilha sai em GET /api/leads.csv?chave=...
+// /data/leads.csv (volume do Easypanel) e manda por e-mail pelo Resend. A planilha sai em GET /api/leads.csv (usuário leads, senha LEAD_ADMIN)
 // Roda no mesmo contêiner do Nginx (127.0.0.1:3000), sem dependências (Node 18+).
 // Variáveis no Easypanel (app web > Environment):
 //   RESEND_API_KEY  chave do Resend (obrigatória; nunca colocar no código)
 //   LEAD_TO         e-mail que recebe os leads (vários separados por vírgula)
 //   LEAD_FROM       remetente; sem domínio verificado no Resend use "Guincho 24h Online <onboarding@resend.dev>"
-//   LEAD_ADMIN      chave para baixar a planilha de leads (/api/leads.csv?chave=...)
+//   LEAD_ADMIN      senha para baixar a planilha de leads (/api/leads.csv, usuário leads)
 //   LEAD_DATA       pasta onde fica o leads.csv (padrão /data; montar um volume nela no Easypanel)
 // Teste local sem enviar e-mail: LEAD_DRY=1 LEAD_STATIC=../site node lead.mjs  (abre o site em http://localhost:3000)
 import http from 'node:http';
 import { readFile, appendFile, mkdir, stat } from 'node:fs/promises';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, timingSafeEqual } from 'node:crypto';
 import path from 'node:path';
 
 const PORT = Number(process.env.LEAD_PORT || 3000); // não usar PORT: o Easypanel define PORT=80 (o do Nginx)
@@ -114,8 +114,14 @@ http.createServer((req, res) => {
   const url = req.url.split('?')[0];
   if (url === '/api/saude') return stat(CSV).then(() => true, () => false).then(planilha => responder(res, 200, { ok: true, configurado: Boolean(KEY && TO.length) || DRY, planilha }));
   if (url === '/api/leads.csv') {
-    const chave = new URL(req.url, 'http://x').searchParams.get('chave') || '';
-    if (!ADMIN || chave !== ADMIN) return responder(res, 403, { ok: false });
+    // Senha no cabeçalho (o navegador pede usuário e senha), nunca na URL, para não ficar nos logs
+    const auth = String(req.headers.authorization || '');
+    const chave = /^Basic /i.test(auth) ? Buffer.from(auth.slice(6), 'base64').toString().split(':').slice(1).join(':') : auth.replace(/^Bearer\s+/i, '');
+    const x = Buffer.from(chave), y = Buffer.from(ADMIN);
+    if (!ADMIN || x.length !== y.length || !timingSafeEqual(x, y)) {
+      res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Leads Guincho 24h Online", charset="UTF-8"', 'Content-Type': 'text/plain; charset=utf-8' });
+      return res.end('Informe o usuario leads e a chave da planilha.');
+    }
     return readFile(CSV).then(b => {
       res.writeHead(200, { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="leads-site.csv"', 'Cache-Control': 'no-store' });
       res.end(b);
