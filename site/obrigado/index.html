@@ -19,7 +19,69 @@
 <script type="application/ld+json">
 {
  "@context": "https://schema.org",
- "@graph": []
+ "@graph": [
+  {
+   "@type": "Organization",
+   "@id": "https://guincho24honline.com.br/#org",
+   "name": "Guincho 24h Online",
+   "url": "https://guincho24honline.com.br/",
+   "description": "Central que conecta motoristas ao guincheiro parceiro da região, com preço fechado antes de sair, no Distrito Federal e no Entorno de Goiás.",
+   "telephone": "+55-61-99380-1454",
+   "areaServed": [
+    {
+     "@type": "AdministrativeArea",
+     "name": "Distrito Federal"
+    },
+    {
+     "@type": "AdministrativeArea",
+     "name": "Goiás"
+    }
+   ],
+   "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer service",
+    "telephone": "+55-61-99380-1454",
+    "availableLanguage": "pt-BR",
+    "hoursAvailable": {
+     "@type": "OpeningHoursSpecification",
+     "dayOfWeek": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday"
+     ],
+     "opens": "00:00",
+     "closes": "23:59"
+    }
+   }
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://guincho24honline.com.br/#site",
+   "url": "https://guincho24honline.com.br/",
+   "name": "Guincho 24h Online",
+   "inLanguage": "pt-BR",
+   "publisher": {
+    "@id": "https://guincho24honline.com.br/#org"
+   }
+  },
+  {
+   "@type": "WebPage",
+   "@id": "https://guincho24honline.com.br/obrigado/#webpage",
+   "url": "https://guincho24honline.com.br/obrigado/",
+   "name": "Pedido recebido",
+   "inLanguage": "pt-BR",
+   "isPartOf": {
+    "@id": "https://guincho24honline.com.br/#site"
+   },
+   "publisher": {
+    "@id": "https://guincho24honline.com.br/#org"
+   }
+  }
+ ]
 }
 </script>
 </head>
@@ -59,7 +121,7 @@
       <p class="small mt-20">Cuidado com golpes: nunca faça Pix para um nome diferente do guincheiro identificado no orçamento. Veja o <a href="/guias/golpe-do-falso-guincho/">guia do golpe do falso guincho</a>.</p>
     </div>
     <div data-ob="parceiro" hidden>
-      <header class="section-header"><p class="eyebrow">Cadastro recebido</p><h1 class="h2-xl">Recebemos o seu cadastro de guincheiro parceiro.</h1>
+      <header class="section-header"><p class="eyebrow">Cadastro recebido</p><h2 class="h2-xl">Recebemos o seu cadastro de guincheiro parceiro.</h2>
       <p class="lead">A central chama você no WhatsApp informado para falar sobre a sua região.</p></header>
       <ol class="ob-steps"><li><b>1</b><strong>A central confere o cadastro</strong><span>Uma pessoa lê os seus dados e confirma se a sua região ainda está disponível.</span></li><li><b>2</b><strong>Conversa pelo WhatsApp</strong><span>A central chama você para explicar a exclusividade, o aluguel mensal e o contrato.</span></li><li><b>3</b><strong>Você decide</strong><span>Se fizer sentido para você, o contrato é enviado por escrito antes de qualquer pagamento.</span></li></ol>
       <div class="ob-box"><p><strong>Quer adiantar a conversa?</strong>Mande uma mensagem pelo WhatsApp com os dados do cadastro e fale com a central agora.</p>
