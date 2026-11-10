@@ -1,6 +1,6 @@
 # Guincho 24h Online
 
-> Central de guincho 24 horas no Distrito Federal e no Entorno de Goiás. Recebe o pedido do motorista e o repassa ao guincheiro parceiro da região, que informa por escrito o preço fechado, o nome, a foto e a placa antes de sair. Não tem frota própria. Também publica guias e dados sobre guincho, trânsito e a frota de veículos do Brasil.
+> Central de guincho 24 horas no Distrito Federal e no Entorno de Goiás. Recebe o pedido do motorista e o repassa ao guincheiro parceiro da região, que informa por escrito o preço fechado, o nome, a foto e a placa antes de sair. No WhatsApp e no telefone, o primeiro atendimento é feito por inteligência artificial, que avisa a central e o guincheiro cadastrado; uma pessoa da central entra quando é necessário. A disponibilidade de guincheiro é confirmada em cada pedido. Não tem frota própria. Também publica guias e dados sobre guincho, trânsito e a frota de veículos do Brasil.
 
 Telefone e WhatsApp: +55 61 99380-1454. Atendimento 24 horas. Lista completa de páginas: https://guincho24honline.com.br/mapa-do-site/
 
